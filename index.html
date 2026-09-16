@@ -1,0 +1,847 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DevTools Hub - Generador Multipropósito</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        },
+                        darkbg: '#090d16',
+                        darkcard: '#111827',
+                        darkborder: '#1f2937'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['Fira Code', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        *, *::before, *::after {
+            transition: background-color 0.2s ease, border-color 0.2s ease, color 0.15s ease;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #64748b;
+        }
+
+        .code-font {
+            font-family: 'Fira Code', monospace;
+        }
+
+        @keyframes toastIn {
+            from { transform: translateY(100%) scale(0.9); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        .toast-animate {
+            animation: toastIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-100 dark:bg-darkbg text-slate-800 dark:text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+    <header class="sticky top-0 z-40 w-full border-b border-slate-200 dark:border-darkborder bg-white/80 dark:bg-darkbg/80 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            
+            <div class="flex items-center gap-3">
+                <button id="mobileNavToggle" class="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 focus:outline-none md:hidden">
+                    <i data-lucide="menu" class="w-5 h-5"></i>
+                </button>
+                <div class="flex items-center gap-2.5">
+                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 flex items-center justify-center text-white font-mono font-bold text-lg shadow-md shadow-brand-500/20">
+                        &gt;_
+                    </div>
+                    <div>
+                        <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent block leading-none">
+                            DevTools<span class="text-brand-500 font-normal">Hub</span>
+                        </span>
+                        <span class="text-[10px] text-slate-400 dark:text-slate-500 font-mono tracking-wider">GENERATOR SUITE</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <button id="clearHistoryGlobalBtn" class="hidden sm:flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-slate-500 hover:text-red-500 dark:text-slate-400 dark:hover:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                    <span>Limpiar Historial</span>
+                </button>
+
+                <div class="h-4 w-[1px] bg-slate-200 dark:bg-darkborder hidden sm:block"></div>
+
+                <button id="themeToggleBtn" class="p-2.5 rounded-xl bg-slate-200/60 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors" title="Alternar Modo Oscuro/Claro">
+                    <i data-lucide="sun" class="w-4 h-4 hidden dark:block text-amber-400"></i>
+                    <i data-lucide="moon" class="w-4 h-4 block dark:hidden text-slate-700"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex-1 flex flex-col md:flex-row gap-6 py-6 w-full">
+
+        <aside id="sidebarNav" class="fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-darkcard border-r border-slate-200 dark:border-darkborder transform -translate-x-full md:translate-x-0 md:static md:bg-transparent md:dark:bg-transparent md:border-none transition-transform duration-300 ease-in-out flex flex-col p-4 md:p-0">
+            <div class="flex items-center justify-between md:hidden mb-4 pb-2 border-b border-slate-200 dark:border-darkborder">
+                <span class="font-bold text-sm text-slate-900 dark:text-white uppercase tracking-wider">Herramientas</span>
+                <button id="closeMobileNav" class="p-1 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <nav class="space-y-1.5" id="navTabs">
+                <button data-tab="binary" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left">
+                    <i data-lucide="binary" class="w-4 h-4"></i>
+                    <span>Binario y Número/Texto</span>
+                </button>
+
+                <button data-tab="uid" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left">
+                    <i data-lucide="fingerprint" class="w-4 h-4"></i>
+                    <span>UUID / NanoID / CUID</span>
+                </button>
+
+                <button data-tab="random" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left">
+                    <i data-lucide="hash" class="w-4 h-4"></i>
+                    <span>Número Aleatorio</span>
+                </button>
+
+                <button data-tab="password" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left">
+                    <i data-lucide="key-round" class="w-4 h-4"></i>
+                    <span>Cadenas / Contraseñas</span>
+                </button>
+
+                <button data-tab="hex" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-medium transition-all text-left">
+                    <i data-lucide="file-code" class="w-4 h-4"></i>
+                    <span>Texto / Entero a Hex</span>
+                </button>
+            </nav>
+
+            <div class="mt-8 border-t border-slate-200 dark:border-darkborder pt-4 hidden md:block">
+                <div class="flex items-center justify-between mb-2 px-1">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 flex items-center gap-1.5">
+                        <i data-lucide="history" class="w-3.5 h-3.5"></i>
+                        Historial
+                    </span>
+                    <span id="historyCount" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">0</span>
+                </div>
+                <div id="sidebarHistoryList" class="space-y-1.5 max-h-56 overflow-y-auto pr-1 text-xs">
+                    <p class="text-slate-400 dark:text-slate-600 italic text-[11px] p-1">Sin elementos recientes</p>
+                </div>
+            </div>
+        </aside>
+
+        <div id="mobileNavOverlay" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden md:hidden"></div>
+
+        <main class="flex-1 min-w-0">
+            
+            <section id="tool-binary" class="tool-content space-y-6">
+                <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="binary" class="w-5 h-5 text-brand-500"></i>
+                        Generador y Convertidor Binario
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Ingresa un número entero o un texto para generar su representación en código binario exacto.</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Paso 1: Introduce un Número o Texto de Entrada</label>
+                            <input type="text" id="binInputData" placeholder="Ejemplo: 42 o Hola Mundo" class="w-full p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Paso 2: Modo de Interpretación</label>
+                                <select id="binModeSelect" class="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                                    <option value="number">Tratar como Número Entero</option>
+                                    <option value="text">Tratar como Texto (ASCII / Unicode)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Formato de Bits (Para Números)</label>
+                                <select id="binPaddingSelect" class="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                                    <option value="auto">Automático (sin ceros extra)</option>
+                                    <option value="8">Forzar 8-bits</option>
+                                    <option value="16">Forzar 16-bits</option>
+                                    <option value="32">Forzar 32-bits</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <button id="generateBinBtn" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-md shadow-brand-500/20 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            Generar Binario
+                        </button>
+
+                        <div id="binResultBox" class="hidden border-t border-slate-200 dark:border-darkborder pt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Resultado Binario</label>
+                                <button id="copyBinResultBtn" class="text-xs text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-medium">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Binario
+                                </button>
+                            </div>
+                            <div id="binOutput" class="p-4 bg-slate-900 text-brand-400 rounded-xl font-mono text-sm sm:text-base break-all border border-slate-800">
+                                00000000
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tool-uid" class="tool-content hidden space-y-6">
+                <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="fingerprint" class="w-5 h-5 text-brand-500"></i>
+                        Generador de UID / UUID / NanoID
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Configura el formato, prefijo opcional y cantidad solicitada para generar identificadores únicos.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Formato Deseado</label>
+                            <select id="uidTypeSelect" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                                <option value="uuidv4">UUID v4 (36 caracteres)</option>
+                                <option value="nanoid">NanoID (21 caracteres)</option>
+                                <option value="cuid">CUID (con timestamp)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Cantidad a Generar</label>
+                            <input type="number" id="uidCountInput" min="1" max="50" value="5" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Prefijo Personalizado</label>
+                            <input type="text" id="uidPrefixInput" placeholder="Ej: usr_, item_" class="w-full px-3 py-2.5 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3 mb-6">
+                        <button id="generateUidBtn" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-md shadow-brand-500/20 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            Generar Identificadores
+                        </button>
+                        <button id="copyAllUidBtn" class="px-4 py-2.5 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl text-sm font-medium flex items-center gap-2">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            Copiar Todos
+                        </button>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Resultado</label>
+                        <div id="uidOutputList" class="bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl p-3 font-mono text-xs sm:text-sm space-y-2 max-h-60 overflow-y-auto">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tool-random" class="tool-content hidden space-y-6">
+                <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="hash" class="w-5 h-5 text-brand-500"></i>
+                        Generador de Números Aleatorios
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Establece el rango Mínimo y Máximo requerido junto con tus reglas para generar los números.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Límite Mínimo</label>
+                            <input type="number" id="randMinInput" value="1" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Límite Máximo</label>
+                            <input type="number" id="randMaxInput" value="100" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Cantidad Solicitada</label>
+                            <input type="number" id="randAmountInput" value="5" min="1" max="100" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Tipo de Valor</label>
+                            <select id="randTypeSelect" class="w-full px-3 py-2 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                                <option value="int">Enteros</option>
+                                <option value="float">Decimales (2 dig)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-4 mb-6">
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="randNoRepeatCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                            <span>Sin Repetición</span>
+                        </label>
+                        <label class="inline-flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="randSortCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500 bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700">
+                            <span>Ordenar de menor a mayor</span>
+                        </label>
+                    </div>
+
+                    <button id="generateRandomNumBtn" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-md shadow-brand-500/20 flex items-center gap-2 mb-6">
+                        <i data-lucide="dices" class="w-4 h-4"></i>
+                        Generar Números
+                    </button>
+
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Resultado Generado</label>
+                            <button id="copyRandResultBtn" class="text-xs text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-medium">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+                            </button>
+                        </div>
+                        <div id="randomNumOutput" class="flex flex-wrap gap-2.5 p-4 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl min-h-[4.5rem] items-center">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tool-password" class="tool-content hidden space-y-6">
+                <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="key-round" class="w-5 h-5 text-brand-500"></i>
+                        Generador de Cadenas & Contraseñas
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Pide los parámetros de longitud e inclusión de caracteres para generar una cadena aleatoria.</p>
+
+                    <div class="relative mb-6">
+                        <div class="p-4 bg-slate-900 text-white rounded-2xl font-mono text-base sm:text-lg flex items-center justify-between border border-slate-800">
+                            <span id="passwordResult" class="truncate pr-4 text-brand-400">Cargando...</span>
+                            <button id="copyPasswordBtn" class="px-3 py-1.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-xs font-sans font-medium flex items-center gap-1.5 shrink-0">
+                                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="space-y-4 mb-6">
+                        <div>
+                            <div class="flex justify-between items-center mb-1">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Longitud Solicitada: <span id="passLengthLabel" class="text-slate-900 dark:text-white font-bold">16</span> caracteres</label>
+                            </div>
+                            <input type="range" id="passLengthRange" min="6" max="64" value="16" class="w-full accent-brand-500">
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <input type="checkbox" id="passUppercaseCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Mayúsculas (A-Z)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <input type="checkbox" id="passLowercaseCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Minúsculas (a-z)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <input type="checkbox" id="passNumbersCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Números (0-9)</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-sm text-slate-700 dark:text-slate-300 cursor-pointer p-2.5 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
+                                <input type="checkbox" id="passSymbolsCheck" checked class="w-4 h-4 rounded text-brand-600 focus:ring-brand-500">
+                                <span>Símbolos Especiales (!@#$%^&*)</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <button id="generatePasswordBtn" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-md shadow-brand-500/20 flex items-center gap-2">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        Generar Nueva Cadena
+                    </button>
+                </div>
+            </section>
+
+            <section id="tool-hex" class="tool-content hidden space-y-6">
+                <div class="bg-white dark:bg-darkcard border border-slate-200 dark:border-darkborder rounded-2xl p-5 sm:p-6 shadow-sm">
+                    <h2 class="text-xl font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-1">
+                        <i data-lucide="file-code" class="w-5 h-5 text-brand-500"></i>
+                        Convertidor a Hexadecimal
+                    </h2>
+                    <p class="text-sm text-slate-500 dark:text-slate-400 mb-6">Pide un valor en texto o número entero para generar su código Hexadecimal (0x...).</p>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Paso 1: Valor de Entrada</label>
+                            <input type="text" id="hexInputData" placeholder="Ej: 255 o Texto de prueba" class="w-full p-3 bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-mono focus:outline-none focus:border-brand-500">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Paso 2: Formato del Dato</label>
+                            <select id="hexModeSelect" class="w-full p-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm font-medium focus:outline-none focus:border-brand-500">
+                                <option value="number">Número Entero (Base 10 -> Base 16)</option>
+                                <option value="text">Texto (ASCII -> Bytes Hex)</option>
+                            </select>
+                        </div>
+
+                        <button id="generateHexBtn" class="px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white rounded-xl text-sm font-medium shadow-md shadow-brand-500/20 flex items-center gap-2">
+                            <i data-lucide="sparkles" class="w-4 h-4"></i>
+                            Convertir a Hex
+                        </button>
+
+                        <div id="hexResultBox" class="hidden border-t border-slate-200 dark:border-darkborder pt-4">
+                            <div class="flex items-center justify-between mb-2">
+                                <label class="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Resultado Hexadecimal</label>
+                                <button id="copyHexResultBtn" class="text-xs text-brand-600 dark:text-brand-400 hover:underline flex items-center gap-1 font-medium">
+                                    <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Hex
+                                </button>
+                            </div>
+                            <div id="hexOutput" class="p-4 bg-slate-900 text-brand-400 rounded-xl font-mono text-sm sm:text-base break-all border border-slate-800">
+                                0x0
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-5 right-5 z-50 hidden">
+        <div class="bg-slate-900 text-white dark:bg-white dark:text-slate-900 px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2.5 text-sm font-medium border border-slate-700 dark:border-slate-200 toast-animate">
+            <i data-lucide="check-circle" class="w-4 h-4 text-brand-500"></i>
+            <span id="toastMessage">¡Copiado al portapapeles!</span>
+        </div>
+    </div>
+
+    <script>
+        (function DevToolsApp() {
+            
+            const state = {
+                history: [],
+                currentTab: 'binary',
+                theme: localStorage.getItem('theme') || 'dark'
+            };
+
+            function showToast(msg = '¡Copiado al portapapeles!') {
+                const toast = document.getElementById('toast');
+                const toastMsg = document.getElementById('toastMessage');
+                toastMsg.textContent = msg;
+                toast.classList.remove('hidden');
+                
+                if (window.toastTimeout) clearTimeout(window.toastTimeout);
+                window.toastTimeout = setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 2000);
+            }
+
+            function copyToClipboard(text, customToastMsg) {
+                if (!text) return;
+                const textarea = document.createElement('textarea');
+                textarea.value = text;
+                textarea.style.position = 'fixed';
+                textarea.style.opacity = '0';
+                document.body.appendChild(textarea);
+                textarea.select();
+                try {
+                    document.execCommand('copy');
+                    showToast(customToastMsg || '¡Copiado al portapapeles!');
+                } catch (err) {
+                    console.error('Error al copiar:', err);
+                }
+                document.body.removeChild(textarea);
+            }
+
+            function addToHistory(item, category) {
+                if (!item) return;
+                const historyObj = {
+                    id: Date.now(),
+                    value: String(item),
+                    category: category,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                };
+                state.history.unshift(historyObj);
+                if (state.history.length > 20) state.history.pop();
+                renderHistory();
+            }
+
+            function renderHistory() {
+                const historyList = document.getElementById('sidebarHistoryList');
+                const countBadge = document.getElementById('historyCount');
+                
+                countBadge.textContent = state.history.length;
+
+                if (state.history.length === 0) {
+                    historyList.innerHTML = `<p class="text-slate-400 dark:text-slate-600 italic text-[11px] p-1">Sin elementos recientes</p>`;
+                    return;
+                }
+
+                historyList.innerHTML = state.history.slice(0, 8).map(h => `
+                    <div class="p-2 bg-slate-100 dark:bg-slate-900/80 rounded-lg border border-slate-200/80 dark:border-slate-800 flex items-center justify-between gap-2 group hover:border-brand-500/50 transition-colors">
+                        <div class="min-w-0 flex-1">
+                            <div class="flex items-center gap-1 text-[9px] font-mono text-slate-400 dark:text-slate-500">
+                                <span>${h.category}</span>
+                                <span>•</span>
+                                <span>${h.time}</span>
+                            </div>
+                            <p class="font-mono text-slate-700 dark:text-slate-300 truncate font-medium text-[11px]">${h.value}</p>
+                        </div>
+                        <button onclick="window.copyFromHistory('${encodeURIComponent(h.value)}')" class="p-1 text-slate-400 hover:text-brand-500 opacity-0 group-hover:opacity-100 transition-opacity" title="Copiar">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                lucide.createIcons();
+            }
+
+            window.copyFromHistory = function(encodedValue) {
+                const val = decodeURIComponent(encodedValue);
+                copyToClipboard(val, '¡Copiado desde historial!');
+            };
+
+            function initTheme() {
+                if (state.theme === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            }
+
+            document.getElementById('themeToggleBtn').addEventListener('click', () => {
+                state.theme = state.theme === 'dark' ? 'light' : 'dark';
+                localStorage.setItem('theme', state.theme);
+                initTheme();
+            });
+
+            function switchTab(tabId) {
+                state.currentTab = tabId;
+                
+                document.querySelectorAll('.nav-btn').forEach(btn => {
+                    if (btn.dataset.tab === tabId) {
+                        btn.classList.add('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/20');
+                        btn.classList.remove('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
+                    } else {
+                        btn.classList.remove('bg-brand-500', 'text-white', 'shadow-md', 'shadow-brand-500/20');
+                        btn.classList.add('text-slate-600', 'dark:text-slate-300', 'hover:bg-slate-100', 'dark:hover:bg-slate-800');
+                    }
+                });
+
+                document.querySelectorAll('.tool-content').forEach(sec => {
+                    if (sec.id === `tool-${tabId}`) {
+                        sec.classList.remove('hidden');
+                    } else {
+                        sec.classList.add('hidden');
+                    }
+                });
+
+                document.getElementById('sidebarNav').classList.add('-translate-x-full');
+                document.getElementById('mobileNavOverlay').classList.add('hidden');
+            }
+
+            document.getElementById('navTabs').addEventListener('click', (e) => {
+                const btn = e.target.closest('.nav-btn');
+                if (btn) switchTab(btn.dataset.tab);
+            });
+
+            document.getElementById('mobileNavToggle').addEventListener('click', () => {
+                document.getElementById('sidebarNav').classList.remove('-translate-x-full');
+                document.getElementById('mobileNavOverlay').classList.remove('hidden');
+            });
+            document.getElementById('closeMobileNav').addEventListener('click', () => {
+                document.getElementById('sidebarNav').classList.add('-translate-x-full');
+                document.getElementById('mobileNavOverlay').classList.add('hidden');
+            });
+            document.getElementById('mobileNavOverlay').addEventListener('click', () => {
+                document.getElementById('sidebarNav').classList.add('-translate-x-full');
+                document.getElementById('mobileNavOverlay').classList.add('hidden');
+            });
+
+            document.getElementById('clearHistoryGlobalBtn').addEventListener('click', () => {
+                state.history = [];
+                renderHistory();
+                showToast('Historial limpiado');
+            });
+
+            // --- TOOL 1: BINARY GENERATOR ---
+            document.getElementById('generateBinBtn').addEventListener('click', () => {
+                const inputVal = document.getElementById('binInputData').value.trim();
+                const mode = document.getElementById('binModeSelect').value;
+                const padding = document.getElementById('binPaddingSelect').value;
+                const resultBox = document.getElementById('binResultBox');
+                const output = document.getElementById('binOutput');
+
+                if (!inputVal) {
+                    showToast('Ingresa un número o texto para convertir');
+                    return;
+                }
+
+                let resultBin = '';
+
+                if (mode === 'number') {
+                    const num = parseInt(inputVal, 10);
+                    if (isNaN(num)) {
+                        showToast('Ingresa un número entero válido');
+                        return;
+                    }
+
+                let resultBin = '';
+
+                if (mode === 'number') {
+                    const num = parseInt(inputVal, 10);
+                    if (isNaN(num)) {
+                        showToast('Ingresa un número entero válido');
+                        return;
+                    }
+                    resultBin = num.toString(2);
+                    if (padding !== 'auto') {
+                        const targetBits = parseInt(padding, 10);
+                        resultBin = resultBin.padStart(targetBits, '0');
+                    }
+                    const formatted = resultBin.match(/.{1,8}/g)?.join(' ') || resultBin;
+                    output.textContent = formatted;
+                    addToHistory(formatted, 'Binario Num');
+                } else {
+                    resultBin = inputVal.split('').map(char => {
+                        return char.charCodeAt(0).toString(2).padStart(8, '0');
+                    }).join(' ');
+                    output.textContent = resultBin;
+                    addToHistory(resultBin.substring(0, 18) + '...', 'Binario Texto');
+                }
+
+                resultBox.classList.remove('hidden');
+            });
+
+            document.getElementById('copyBinResultBtn').addEventListener('click', () => {
+                copyToClipboard(document.getElementById('binOutput').textContent);
+            });
+
+            // --- TOOL 2: UID GENERATOR ---
+            function generateUUIDv4() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                    const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+
+            function generateNanoID(size = 21) {
+                const urlAlphabet = 'useandom-26T198340PX75pxJACKVERYMINDBUSHWOLFGQZ_vfi';
+                let id = '';
+                for (let i = 0; i < size; i++) {
+                    id += urlAlphabet[(Math.random() * urlAlphabet.length) | 0];
+                }
+                return id;
+            }
+
+            function generateCUID() {
+                const timestamp = Date.now().toString(36);
+                const random = Math.random().toString(36).substring(2, 8);
+                return 'c' + timestamp + random;
+            }
+
+            document.getElementById('generateUidBtn').addEventListener('click', () => {
+                const type = document.getElementById('uidTypeSelect').value;
+                const count = Math.min(Math.max(parseInt(document.getElementById('uidCountInput').value) || 1, 1), 50);
+                const prefix = document.getElementById('uidPrefixInput').value.trim();
+
+                let results = [];
+                for (let i = 0; i < count; i++) {
+                    let id = '';
+                    if (type === 'uuidv4') id = generateUUIDv4();
+                    else if (type === 'nanoid') id = generateNanoID();
+                    else if (type === 'cuid') id = generateCUID();
+
+                    results.push(prefix + id);
+                }
+
+                const outputContainer = document.getElementById('uidOutputList');
+                outputContainer.innerHTML = results.map(id => `
+                    <div class="flex items-center justify-between p-2 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700/60">
+                        <span class="text-brand-600 dark:text-brand-400 font-bold truncate">${id}</span>
+                        <button onclick="window.copySingleUid('${id}')" class="p-1 text-slate-400 hover:text-slate-800 dark:hover:text-white" title="Copiar">
+                            <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </div>
+                `).join('');
+
+                lucide.createIcons();
+                addToHistory(results[0], type.toUpperCase());
+            });
+
+            window.copySingleUid = function(id) {
+                copyToClipboard(id);
+            };
+
+            document.getElementById('copyAllUidBtn').addEventListener('click', () => {
+                const items = Array.from(document.querySelectorAll('#uidOutputList span')).map(el => el.textContent);
+                if (items.length > 0) {
+                    copyToClipboard(items.join('\n'));
+                }
+            });
+
+            // --- TOOL 3: RANDOM NUMBERS ---
+            document.getElementById('generateRandomNumBtn').addEventListener('click', () => {
+                const min = parseFloat(document.getElementById('randMinInput').value) || 0;
+                const max = parseFloat(document.getElementById('randMaxInput').value) || 100;
+                const amount = parseInt(document.getElementById('randAmountInput').value) || 1;
+                const type = document.getElementById('randTypeSelect').value;
+                const noRepeat = document.getElementById('randNoRepeatCheck').checked;
+                const sortAsc = document.getElementById('randSortCheck').checked;
+
+                if (min >= max) {
+                    showToast('El mínimo debe ser menor al máximo');
+                    return;
+                }
+
+                let nums = [];
+                let attempts = 0;
+                const maxAttempts = 10000;
+
+                while (nums.length < amount && attempts < maxAttempts) {
+                    attempts++;
+                    let val;
+                    if (type === 'int') {
+                        val = Math.floor(Math.random() * (max - min + 1)) + min;
+                    } else {
+                        val = parseFloat((Math.random() * (max - min) + min).toFixed(2));
+                    }
+
+                    if (noRepeat) {
+                        if (!nums.includes(val)) nums.push(val);
+                    } else {
+                        nums.push(val);
+                    }
+                }
+
+                if (sortAsc) nums.sort((a, b) => a - b);
+
+                const output = document.getElementById('randomNumOutput');
+                output.innerHTML = nums.map(n => `
+                    <div class="px-3.5 py-2 rounded-xl bg-gradient-to-tr from-brand-600 to-emerald-400 text-white font-mono font-bold text-base sm:text-lg flex items-center justify-center shadow-md shadow-brand-500/20 transform hover:scale-105 transition-transform">
+                        ${n}
+                    </div>
+                `).join('');
+
+                addToHistory(nums.join(', '), 'Números');
+            });
+
+            document.getElementById('copyRandResultBtn').addEventListener('click', () => {
+                const numElems = document.querySelectorAll('#randomNumOutput div');
+                const vals = Array.from(numElems).map(el => el.textContent.trim());
+                copyToClipboard(vals.join(', '));
+            });
+
+            // --- TOOL 4: STRING / PASSWORD GENERATOR ---
+            const passLengthRange = document.getElementById('passLengthRange');
+            const passLengthLabel = document.getElementById('passLengthLabel');
+
+            passLengthRange.addEventListener('input', (e) => {
+                passLengthLabel.textContent = e.target.value;
+                generatePassword();
+            });
+
+            function generatePassword() {
+                const length = parseInt(passLengthRange.value);
+                const hasUpper = document.getElementById('passUppercaseCheck').checked;
+                const hasLower = document.getElementById('passLowercaseCheck').checked;
+                const hasNumbers = document.getElementById('passNumbersCheck').checked;
+                const hasSymbols = document.getElementById('passSymbolsCheck').checked;
+
+                let chars = '';
+                if (hasUpper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                if (hasLower) chars += 'abcdefghijklmnopqrstuvwxyz';
+                if (hasNumbers) chars += '0123456789';
+                if (hasSymbols) chars += '!@#$%^&*()_+-=[]{}|;:,.<>?';
+
+                if (!chars) {
+                    document.getElementById('passwordResult').textContent = 'Selecciona al menos un tipo de carácter';
+                    return;
+                }
+
+                let password = '';
+                const array = new Uint32Array(length);
+                window.crypto.getRandomValues(array);
+
+                for (let i = 0; i < length; i++) {
+                    password += chars[array[i] % chars.length];
+                }
+
+                document.getElementById('passwordResult').textContent = password;
+            }
+
+            document.getElementById('generatePasswordBtn').addEventListener('click', () => {
+                generatePassword();
+                const pass = document.getElementById('passwordResult').textContent;
+                addToHistory(pass.substring(0, 10) + '...', 'Cadena');
+            });
+
+            document.getElementById('copyPasswordBtn').addEventListener('click', () => {
+                const pass = document.getElementById('passwordResult').textContent;
+                copyToClipboard(pass);
+            });
+
+            ['passUppercaseCheck', 'passLowercaseCheck', 'passNumbersCheck', 'passSymbolsCheck'].forEach(id => {
+                document.getElementById(id).addEventListener('change', generatePassword);
+            });
+
+            // --- TOOL 5: HEX CONVERTER ---
+            document.getElementById('generateHexBtn').addEventListener('click', () => {
+                const inputVal = document.getElementById('hexInputData').value.trim();
+                const mode = document.getElementById('hexModeSelect').value;
+                const resultBox = document.getElementById('hexResultBox');
+                const output = document.getElementById('hexOutput');
+
+                if (!inputVal) {
+                    showToast('Ingresa un valor para convertir a Hexadecimal');
+                    return;
+                }
+
+                if (mode === 'number') {
+                    const num = parseInt(inputVal, 10);
+                    if (isNaN(num)) {
+                        showToast('Ingresa un número entero válido');
+                        return;
+                    }
+                    const hexStr = '0x' + num.toString(16).toUpperCase();
+                    output.textContent = hexStr;
+                    addToHistory(hexStr, 'Hex Num');
+                } else {
+                    const hexStr = inputVal.split('').map(char => {
+                        return char.charCodeAt(0).toString(16).padStart(2, '0').toUpperCase();
+                    }).join(' ');
+                    output.textContent = hexStr;
+                    addToHistory(hexStr.substring(0, 15) + '...', 'Hex Texto');
+                }
+
+                resultBox.classList.remove('hidden');
+            });
+
+            document.getElementById('copyHexResultBtn').addEventListener('click', () => {
+                copyToClipboard(document.getElementById('hexOutput').textContent);
+            });
+
+            // --- INITIALIZATION ---
+            window.addEventListener('load', () => {
+                initTheme();
+                switchTab('binary');
+                generatePassword();
+                document.getElementById('generateUidBtn').click();
+                document.getElementById('generateRandomNumBtn').click();
+                lucide.createIcons();
+            });
+
+        })();
+    </script>
+</body>
+</html>
